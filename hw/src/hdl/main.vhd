@@ -65,6 +65,12 @@ architecture Behavioral of main is
 		RGB6_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
 		jbCH1_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
 		jbCH2_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
+		jcCH1_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
+		jcCH2_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
+		jdCH1_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
+		jdCH2_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
+		jeCH1_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
+		jeCH2_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
 		FCLK0 : out STD_LOGIC
 		);
 	end component bdMaxLED;
@@ -75,6 +81,15 @@ architecture Behavioral of main is
 		o_blink : out std_logic
 	);
 	end component dbgBlink;
+	----------------------------------------------------------------------------
+	component pmod8LD is
+	port (
+		i_clk : in std_logic;
+		i_ch1 : in std_logic_vector(31 downto 0);
+		i_ch2 : in std_logic_vector(31 downto 0);
+		o_out : out std_logic_vector(7 downto 0)
+	);
+	end component pmod8LD;
 	----------------------------------------------------------------------------
 	component pwm is
 	port (
@@ -96,6 +111,12 @@ architecture Behavioral of main is
     signal  psRGB6          : std_logic_vector(31 downto 0):=(others=> '0');
     signal  psJBCH1			: std_logic_vector(31 downto 0):=(others=> '0');
     signal  psJBCH2			: std_logic_vector(31 downto 0):=(others=> '0');
+	signal  psJCCH1			: std_logic_vector(31 downto 0):=(others=> '0');
+    signal  psJCCH2			: std_logic_vector(31 downto 0):=(others=> '0');
+	signal  psJDCH1			: std_logic_vector(31 downto 0):=(others=> '0');
+    signal  psJDCH2			: std_logic_vector(31 downto 0):=(others=> '0');
+	signal  psJECH1			: std_logic_vector(31 downto 0):=(others=> '0');
+    signal  psJECH2			: std_logic_vector(31 downto 0):=(others=> '0');
 	----------------------------------------------------------------------------
 	signal	wRGB5r			: std_logic:= '0';
 	signal	wRGB5g			: std_logic:= '0';
@@ -140,9 +161,15 @@ newbdMaxLED: component bdMaxLED
 		RGB6_tri_o(31 downto 0) => psRGB6,
 		jbCH1_tri_o(31 downto 0) => psJBCH1,
 		jbCH2_tri_o(31 downto 0) => psJBCH2,
+		jcCH1_tri_o(31 downto 0) => psJCCH1,
+		jcCH2_tri_o(31 downto 0) => psJCCH2,
+		jdCH1_tri_o(31 downto 0) => psJDCH1,
+		jdCH2_tri_o(31 downto 0) => psJDCH2,
+		jeCH1_tri_o(31 downto 0) => psJECH1,
+		jeCH2_tri_o(31 downto 0) => psJECH2,
 		FCLK0 => clkPs
 	);
-	----------------------------------------------------------------------------
+	--------------------------------------------------------------------------
 	plCheck: component dbgBlink
 		port map (
 			i_clk => clkPl,
@@ -154,7 +181,7 @@ newbdMaxLED: component bdMaxLED
 			i_clk => clkPs,
 			o_blink => psBlink
 		);
-	----------------------------------------------------------------------------
+	------------------------------------------------------------------------
 	red5_i: component pwm
 		port map (
 			i_clk => clkPs,
@@ -175,7 +202,7 @@ newbdMaxLED: component bdMaxLED
 			i_dutyCycle => psRGB5(23 downto 16),
 			o_pwm =>wRGB5b
 		);
-	----------------------------------------------------------------------------
+	------------------------------------------------------------------------
 	red6_i: component pwm
 		port map (
 			i_clk => clkPs,
@@ -196,65 +223,39 @@ newbdMaxLED: component bdMaxLED
 			i_dutyCycle => psRGB6(23 downto 16),
 			o_pwm => wRGB6b
 		);
-	----------------------------------------------------------------------------
-	-- 
-	----------------------------------------------------------------------------
-	jb8LD1: component pwm
+	--------------------------------------------------------------------------
+	jb8LD: component pmod8LD
 		port map (
 			i_clk => clkPs,
-			i_dutyCycle => psJBCH1(7 downto 0),
-			o_pwm => wJb(0)
+			i_ch1 => psJBCH1,
+			i_ch2 => psJBCH2,
+			o_out => wJb
 		);
-		
-	jb8LD2: component pwm
+
+	jc8LD: component pmod8LD
 		port map (
 			i_clk => clkPs,
-			i_dutyCycle => psJBCH1(15 downto 8),
-			o_pwm => wJb(1)
-		);
-	
-	jb8LD3: component pwm
-		port map (
-			i_clk => clkPs,
-			i_dutyCycle => psJBCH1(23 downto 16),
-			o_pwm => wJb(2)
+			i_ch1 => psJCCH1,
+			i_ch2 => psJCCH2,
+			o_out => wJc
 		);
 	
-	jb8LD4: component pwm
+	jd8LD: component pmod8LD
 		port map (
 			i_clk => clkPs,
-			i_dutyCycle => psJBCH1(31 downto 24),
-			o_pwm => wJb(3)
-		);
-	----------------------------------------------------------------------------
-	jb8LD5: component pwm
-		port map (
-			i_clk => clkPs,
-			i_dutyCycle => psJBCH2(7 downto 0),
-			o_pwm => wJb(4)
-		);
-		
-	jb8LD6: component pwm
-		port map (
-			i_clk => clkPs,
-			i_dutyCycle => psJBCH2(15 downto 8),
-			o_pwm => wJb(5)
+			i_ch1 => psJDCH1,
+			i_ch2 => psJDCH2,
+			o_out => wJd
 		);
 	
-	jb8LD7: component pwm
+	je8LD: component pmod8LD
 		port map (
 			i_clk => clkPs,
-			i_dutyCycle => psJBCH2(23 downto 16),
-			o_pwm => wJb(6)
+			i_ch1 => psJECH1,
+			i_ch2 => psJECH2,
+			o_out => wJe
 		);
-	
-	jb8LD8: component pwm
-		port map (
-			i_clk => clkPs,
-			i_dutyCycle => psJBCH2(31 downto 24),
-			o_pwm => wJb(7)
-		);
-	----------------------------------------------------------------------------
+	--------------------------------------------------------------------------
 	clkPl <= sysclk;
 
 	rgb5(0) <= wRGB5r;

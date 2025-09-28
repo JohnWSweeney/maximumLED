@@ -40,12 +40,39 @@ int main(void){
 	XGpio_DiscreteWrite(&gpioJB, 1, 0);
 	XGpio_SetDataDirection(&gpioJB, 2, 0);
 	XGpio_DiscreteWrite(&gpioJB, 2, 0);
+	// initialize gpioJC channels 1 & 2.
+	XGpio gpioJC;
+	XGpio_Initialize(&gpioJC, XPAR_GPIOJC_DEVICE_ID);
+	XGpio_SetDataDirection(&gpioJC, 1, 0);
+	XGpio_DiscreteWrite(&gpioJC, 1, 0);
+	XGpio_SetDataDirection(&gpioJC, 2, 0);
+	XGpio_DiscreteWrite(&gpioJC, 2, 0);
+	// initialize gpioJD channels 1 & 2.
+	XGpio gpioJD;
+	XGpio_Initialize(&gpioJD, XPAR_GPIOJD_DEVICE_ID);
+	XGpio_SetDataDirection(&gpioJD, 1, 0);
+	XGpio_DiscreteWrite(&gpioJD, 1, 0);
+	XGpio_SetDataDirection(&gpioJD, 2, 0);
+	XGpio_DiscreteWrite(&gpioJD, 2, 0);
+	// initialize gpioJD channels 1 & 2.
+	XGpio gpioJE;
+	XGpio_Initialize(&gpioJE, XPAR_GPIOJE_DEVICE_ID);
+	XGpio_SetDataDirection(&gpioJE, 1, 0);
+	XGpio_DiscreteWrite(&gpioJE, 1, 0);
+	XGpio_SetDataDirection(&gpioJE, 2, 0);
+	XGpio_DiscreteWrite(&gpioJE, 2, 0);
 	//
 	static u32 psIncr = 0;
 	static u32 plIncr = 0;
 	static u32 mioLEDstatus = 0;
 	pmod8LDCH jbCH1 = {0};
 	pmod8LDCH jbCH2 = {0};
+	pmod8LDCH jcCH1 = {0};
+	pmod8LDCH jcCH2 = {0};
+	pmod8LDCH jdCH1 = {0};
+	pmod8LDCH jdCH2 = {0};
+	pmod8LDCH jeCH1 = {0};
+	pmod8LDCH jeCH2 = {0};
 	static u8 randMIN = 0;
 	static u8 randMAX = 100;
 	static u8 plIncrTrig = 10;
@@ -71,8 +98,41 @@ int main(void){
 			jbCH2.led3 = (rand() % (randMAX - randMIN + 1)) + randMIN;
 			jbCH2.led4 = (rand() % (randMAX - randMIN + 1)) + randMIN;
 			//
+			jcCH1.led1 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jcCH1.led2 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jcCH1.led3 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jcCH1.led4 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jcCH2.led1 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jcCH2.led2 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jcCH2.led3 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jcCH2.led4 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			//
+			jdCH1.led1 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jdCH1.led2 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jdCH1.led3 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jdCH1.led4 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jdCH2.led1 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jdCH2.led2 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jdCH2.led3 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jdCH2.led4 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			//
+			jeCH1.led1 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jeCH1.led2 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jeCH1.led3 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jeCH1.led4 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jeCH2.led1 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jeCH2.led2 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jeCH2.led3 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			jeCH2.led4 = (rand() % (randMAX - randMIN + 1)) + randMIN;
+			//
 			XGpio_DiscreteWrite(&gpioJB, 1, jbCH1.gpio);
 			XGpio_DiscreteWrite(&gpioJB, 2, jbCH2.gpio);
+			XGpio_DiscreteWrite(&gpioJC, 1, jcCH1.gpio);
+			XGpio_DiscreteWrite(&gpioJC, 2, jcCH2.gpio);			
+			XGpio_DiscreteWrite(&gpioJD, 1, jdCH1.gpio);
+			XGpio_DiscreteWrite(&gpioJD, 2, jdCH2.gpio);			
+			XGpio_DiscreteWrite(&gpioJE, 1, jeCH1.gpio);
+			XGpio_DiscreteWrite(&gpioJE, 2, jeCH2.gpio);
 			plIncrTrig = (rand() % (plIncrMAX - plIncrMIN + 1)) + plIncrMIN; 
 			plIncr = 0;
 		}
