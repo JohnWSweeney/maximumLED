@@ -1,7 +1,7 @@
 {
   "design": {
     "design_info": {
-      "boundary_crc": "0x40BDF44FB3B1E46A",
+      "boundary_crc": "0x67912F5594E9729",
       "device": "xc7z020clg400-1",
       "gen_directory": "../../../../zyboZ720_maximumLED.gen/sources_1/bd/bdMaxLED",
       "name": "bdMaxLED",
@@ -353,6 +353,20 @@
           },
           "PHASE": {
             "value": "0.0",
+            "value_src": "default"
+          }
+        }
+      },
+      "FCLK0_RESETn": {
+        "type": "rst",
+        "direction": "O",
+        "parameters": {
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "POLARITY": {
+            "value": "ACTIVE_LOW",
             "value_src": "default"
           }
         }
@@ -2425,7 +2439,8 @@
       "processing_system7_0_FCLK_RESET0_N": {
         "ports": [
           "processing_system7_0/FCLK_RESET0_N",
-          "rst_ps7_0_50M/ext_reset_in"
+          "rst_ps7_0_50M/ext_reset_in",
+          "FCLK0_RESETn"
         ]
       },
       "rst_ps7_0_50M_peripheral_aresetn": {

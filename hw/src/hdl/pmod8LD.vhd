@@ -31,56 +31,56 @@ begin
 	----------------------------------------------------------------------------
 	-- 
 	----------------------------------------------------------------------------
-	LD1: component pwm
+	LED1: component pwm
 		port map (
 			i_clk => clk,
 			i_dutyCycle => wCH1(7 downto 0),
 			o_pwm => wout(0)
 		);
 		
-	LD2: component pwm
+	LED2: component pwm
 		port map (
 			i_clk => clk,
 			i_dutyCycle => wCH1(15 downto 8),
 			o_pwm => wout(1)
 		);
 	
-	LD3: component pwm
+	LED3: component pwm
 		port map (
 			i_clk => clk,
 			i_dutyCycle => wCH1(23 downto 16),
 			o_pwm => wout(2)
 		);
 	
-	LD4: component pwm
+	LED4: component pwm
 		port map (
 			i_clk => clk,
 			i_dutyCycle => wCH1(31 downto 24),
 			o_pwm => wout(3)
 		);
 	----------------------------------------------------------------------------
-	LD5: component pwm
+	LED5: component pwm
 		port map (
 			i_clk => clk,
 			i_dutyCycle => wCH2(7 downto 0),
 			o_pwm => wout(4)
 		);
 		
-	LD6: component pwm
+	LED6: component pwm
 		port map (
 			i_clk => clk,
 			i_dutyCycle => wCH2(15 downto 8),
 			o_pwm => wout(5)
 		);
 	
-	LD7: component pwm
+	LED7: component pwm
 		port map (
 			i_clk => clk,
 			i_dutyCycle => wCH2(23 downto 16),
 			o_pwm => wout(6)
 		);
 	
-	LD8: component pwm
+	LED8: component pwm
 		port map (
 			i_clk => clk,
 			i_dutyCycle => wCH2(31 downto 24),

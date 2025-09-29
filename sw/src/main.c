@@ -16,6 +16,16 @@ typedef union {
 	};
 } pmod8LDCH;
 
+typedef union {
+	u32 gpio;
+	struct {
+		u8 red;
+		u8 green;
+		u8 blue;
+		u8 idk;
+	};
+} plRGB;
+
 int main(void){
 	static const u32 mioLED = 7;
 	static const u32 mioPmod[8] = {13, 10, 11, 12, 0, 9, 14, 15};
@@ -61,6 +71,13 @@ int main(void){
 	XGpio_DiscreteWrite(&gpioJE, 1, 0);
 	XGpio_SetDataDirection(&gpioJE, 2, 0);
 	XGpio_DiscreteWrite(&gpioJE, 2, 0);
+	// initialize PL RGB channels 1 & 2.
+	XGpio gpioRGB;
+	XGpio_Initialize(&gpioRGB, XPAR_RGB_DEVICE_ID);
+	XGpio_SetDataDirection(&gpioRGB, 1, 0);
+	XGpio_DiscreteWrite(&gpioRGB, 1, 0);
+	XGpio_SetDataDirection(&gpioRGB, 2, 0);
+	XGpio_DiscreteWrite(&gpioRGB, 2, 0);
 	//
 	static u32 psIncr = 0;
 	static u32 plIncr = 0;
@@ -73,11 +90,25 @@ int main(void){
 	pmod8LDCH jdCH2 = {0};
 	pmod8LDCH jeCH1 = {0};
 	pmod8LDCH jeCH2 = {0};
+	
+	plRGB rgb5 = {0};
+	plRGB rgb6 = {0};
+	
 	static u8 randMIN = 0;
 	static u8 randMAX = 100;
 	static u8 plIncrTrig = 10;
 	static u8 plIncrMIN = 10;
 	static u8 plIncrMAX = 100;
+	
+	static u32 rgbIncr = 0;
+	static u8 rgbRRandMIN = 1;
+	static u8 rgbRRandMAX = 10;
+	static u8 rgbBRandMIN = 1;
+	static u8 rgbBRandMAX = 10;
+	static u8 rgbIncrTrig = 10;
+	static u8 rgbIncrMIN = 10;
+	static u8 rgbIncrMAX = 200;
+	
 	srand(666);
 	printf("entering while loop.\n");
 
@@ -137,8 +168,26 @@ int main(void){
 			plIncr = 0;
 		}
 		//
+		if(rgbIncr==rgbIncrTrig){
+			rgb5.red = 0;
+			rgb5.green = 0;
+			rgb5.blue = (rand() % (rgbBRandMAX - rgbBRandMIN + 1)) + rgbBRandMIN;
+			XGpio_DiscreteWrite(&gpioRGB, 1, rgb5.gpio);
+			//
+			static u8 rando;
+			rando = (rand() % (rgbRRandMAX - rgbRRandMIN + 1)) + rgbRRandMIN;
+			rgb6.red = rando;
+			rgb6.green = 0;
+			rgb6.blue = 0;
+			XGpio_DiscreteWrite(&gpioRGB, 2, rgb6.gpio);
+			//
+			rgbIncrTrig = (rand() % (rgbIncrMAX - rgbIncrMIN + 1)) + rgbIncrMIN; 
+			rgbIncr = 0;
+		}
+		//
 		psIncr++;
 		plIncr++;
+		rgbIncr++;
 		usleep(1000); // 1 ms
 	}
 }

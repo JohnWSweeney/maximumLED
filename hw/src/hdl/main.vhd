@@ -71,6 +71,7 @@ architecture Behavioral of main is
 		jdCH2_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
 		jeCH1_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
 		jeCH2_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
+		FCLK0_RESETn : out STD_LOGIC;
 		FCLK0 : out STD_LOGIC
 		);
 	end component bdMaxLED;
@@ -82,6 +83,14 @@ architecture Behavioral of main is
 	);
 	end component dbgBlink;
 	----------------------------------------------------------------------------
+	component rgbDriver is
+	port (
+		i_clk : in std_logic;
+		i_data : in std_logic_vector(23 downto 0);
+		o_out : out std_logic_vector(2 downto 0)
+	);
+	end component rgbDriver;
+	----------------------------------------------------------------------------
 	component pmod8LD is
 	port (
 		i_clk : in std_logic;
@@ -91,50 +100,51 @@ architecture Behavioral of main is
 	);
 	end component pmod8LD;
 	----------------------------------------------------------------------------
-	component pwm is
-	port (
-		i_clk : in std_logic;
-		i_dutyCycle : in std_logic_vector(7 downto 0);
-		o_pwm : out std_logic
-	);
-	end component pwm;
-	----------------------------------------------------------------------------
-    signal  clkPl			: std_logic;
-    signal  clkPs			: std_logic;
+    signal	plClk			: std_logic; -- 125MHz sysclk.
+    signal  psClk			: std_logic; -- 125MHz PS clk.
+    signal  psRSTn			: std_logic;
 	signal	plBlink			: std_logic;
 	signal	psBlink			: std_logic;
-    signal  gpioLED   		: std_logic_vector(3 downto 0):=(others=> '0');
 	----------------------------------------------------------------------------
-	-- Ps signals
+	-- PS signals
 	----------------------------------------------------------------------------
-    signal  psRGB5          : std_logic_vector(31 downto 0):=(others=> '0');
-    signal  psRGB6          : std_logic_vector(31 downto 0):=(others=> '0');
-    signal  psJBCH1			: std_logic_vector(31 downto 0):=(others=> '0');
-    signal  psJBCH2			: std_logic_vector(31 downto 0):=(others=> '0');
-	signal  psJCCH1			: std_logic_vector(31 downto 0):=(others=> '0');
-    signal  psJCCH2			: std_logic_vector(31 downto 0):=(others=> '0');
-	signal  psJDCH1			: std_logic_vector(31 downto 0):=(others=> '0');
-    signal  psJDCH2			: std_logic_vector(31 downto 0):=(others=> '0');
-	signal  psJECH1			: std_logic_vector(31 downto 0):=(others=> '0');
-    signal  psJECH2			: std_logic_vector(31 downto 0):=(others=> '0');
+    signal  psRGB5          : std_logic_vector(31 downto 0);
+    signal  psRGB6          : std_logic_vector(31 downto 0);
+    signal  psJBCH1			: std_logic_vector(31 downto 0);
+    signal  psJBCH2			: std_logic_vector(31 downto 0);
+	signal  psJCCH1			: std_logic_vector(31 downto 0);
+    signal  psJCCH2			: std_logic_vector(31 downto 0);
+	signal  psJDCH1			: std_logic_vector(31 downto 0);
+    signal  psJDCH2			: std_logic_vector(31 downto 0);
+	signal  psJECH1			: std_logic_vector(31 downto 0);
+    signal  psJECH2			: std_logic_vector(31 downto 0);
 	----------------------------------------------------------------------------
-	signal	wRGB5r			: std_logic:= '0';
-	signal	wRGB5g			: std_logic:= '0';
-	signal	wRGB5b			: std_logic:= '0';
-	signal	wRGB6r			: std_logic:= '0';
-	signal	wRGB6g			: std_logic:= '0';
-	signal	wRGB6b			: std_logic:= '0';
+	-- PS registers
 	----------------------------------------------------------------------------
-	-- Pmod connector signals
+    signal  regRGB5			: std_logic_vector(31 downto 0);
+    signal  regRGB6			: std_logic_vector(31 downto 0);
+    signal  regJBCH1		: std_logic_vector(31 downto 0);
+    signal  regJBCH2		: std_logic_vector(31 downto 0);
+	signal  regJCCH1		: std_logic_vector(31 downto 0);
+    signal  regJCCH2		: std_logic_vector(31 downto 0);
+	signal  regJDCH1		: std_logic_vector(31 downto 0);
+    signal  regJDCH2		: std_logic_vector(31 downto 0);
+	signal  regJECH1		: std_logic_vector(31 downto 0);
+    signal  regJECH2		: std_logic_vector(31 downto 0);
 	----------------------------------------------------------------------------
-	signal  wJb				: std_logic_vector(7 downto 0):=(others=> '0');
-	signal  wJc				: std_logic_vector(7 downto 0):=(others=> '0');
-	signal  wJd				: std_logic_vector(7 downto 0):=(others=> '0');
-	signal  wJe				: std_logic_vector(7 downto 0):=(others=> '0');
+	-- PL signals
+	----------------------------------------------------------------------------
+	signal  wLED	   		: std_logic_vector(3 downto 0);
+	signal	wRGB5			: std_logic_vector(2 downto 0);
+	signal	wRGB6			: std_logic_vector(2 downto 0);
+	signal  wJb				: std_logic_vector(7 downto 0);
+	signal  wJc				: std_logic_vector(7 downto 0);
+	signal  wJd				: std_logic_vector(7 downto 0);
+	signal  wJe				: std_logic_vector(7 downto 0);
 	----------------------------------------------------------------------------
     
 begin
-newbdMaxLED: component bdMaxLED
+	psBdMaxLED: component bdMaxLED
 	port map (
 		DDR_addr(14 downto 0) => DDR_addr(14 downto 0),
 		DDR_ba(2 downto 0) => DDR_ba(2 downto 0),
@@ -167,112 +177,111 @@ newbdMaxLED: component bdMaxLED
 		jdCH2_tri_o(31 downto 0) => psJDCH2,
 		jeCH1_tri_o(31 downto 0) => psJECH1,
 		jeCH2_tri_o(31 downto 0) => psJECH2,
-		FCLK0 => clkPs
+		FCLK0_RESETn => psRSTn,
+		FCLK0 => psClk
 	);
-	--------------------------------------------------------------------------
+	----------------------------------------------------------------------------
 	plCheck: component dbgBlink
-		port map (
-			i_clk => clkPl,
-			o_blink => plBlink
-		);
+	port map (
+		i_clk => plClk,
+		o_blink => plBlink
+	);
 		
 	psCheck: component dbgBlink
-		port map (
-			i_clk => clkPs,
-			o_blink => psBlink
-		);
-	------------------------------------------------------------------------
-	red5_i: component pwm
-		port map (
-			i_clk => clkPs,
-			i_dutyCycle => psRGB5(7 downto 0),
-			o_pwm => wRGB5r
-		);
-
-	green5_i: component pwm
-		port map (
-			i_clk => clkPs,
-			i_dutyCycle => psRGB5(15 downto 8),
-			o_pwm => wRGB5g
-		);
-
-	blue5_i: component pwm
-		port map (
-			i_clk => clkPs,
-			i_dutyCycle => psRGB5(23 downto 16),
-			o_pwm =>wRGB5b
-		);
-	------------------------------------------------------------------------
-	red6_i: component pwm
-		port map (
-			i_clk => clkPs,
-			i_dutyCycle => psRGB6(7 downto 0),
-			o_pwm => wRGB6r
-		);
-
-	green6_i: component pwm
-		port map (
-			i_clk => clkPs,
-			i_dutyCycle => psRGB6(15 downto 8),
-			o_pwm => wRGB6g
-		);
-
-	blue6_i: component pwm
-		port map (
-			i_clk => clkPs,
-			i_dutyCycle => psRGB6(23 downto 16),
-			o_pwm => wRGB6b
-		);
-	--------------------------------------------------------------------------
+	port map (
+		i_clk => psClk,
+		o_blink => psBlink
+	);
+	----------------------------------------------------------------------------
+	plRGB5: component rgbDriver
+	port map (
+		i_clk => psClk,
+		i_data => regRGB5(23 downto 0),
+		o_out => wRGB5
+	);
+	
+	plRGB6: component rgbDriver
+	port map (
+		i_clk => psClk,
+		i_data => regRGB6(23 downto 0),
+		o_out => wRGB6
+	);
+	----------------------------------------------------------------------------
 	jb8LD: component pmod8LD
-		port map (
-			i_clk => clkPs,
-			i_ch1 => psJBCH1,
-			i_ch2 => psJBCH2,
-			o_out => wJb
-		);
+	port map (
+		i_clk => psClk,
+		i_ch1 => regJBCH1,
+		i_ch2 => regJBCH2,
+		o_out => wJb
+	);
 
 	jc8LD: component pmod8LD
-		port map (
-			i_clk => clkPs,
-			i_ch1 => psJCCH1,
-			i_ch2 => psJCCH2,
-			o_out => wJc
-		);
+	port map (
+		i_clk => psClk,
+		i_ch1 => regJCCH1,
+		i_ch2 => regJCCH2,
+		o_out => wJc
+	);
 	
 	jd8LD: component pmod8LD
-		port map (
-			i_clk => clkPs,
-			i_ch1 => psJDCH1,
-			i_ch2 => psJDCH2,
-			o_out => wJd
-		);
+	port map (
+		i_clk => psClk,
+		i_ch1 => regJDCH1,
+		i_ch2 => regJDCH2,
+		o_out => wJd
+	);
 	
 	je8LD: component pmod8LD
-		port map (
-			i_clk => clkPs,
-			i_ch1 => psJECH1,
-			i_ch2 => psJECH2,
-			o_out => wJe
-		);
-	--------------------------------------------------------------------------
-	clkPl <= sysclk;
-
-	rgb5(0) <= wRGB5r;
-	rgb5(1) <= wRGB5g;
-	rgb5(2) <= wRGB5b;
-	rgb6(0) <= wRGB6r;
-	rgb6(1) <= wRGB6g;
-	rgb6(2) <= wRGB6b;
-	
-	led <= gpioLED;
-	gpioLED(1) <= psBlink;
-	gpioLED(0) <= plBlink;
+	port map (
+		i_clk => psClk,
+		i_ch1 => regJECH1,
+		i_ch2 => regJECH2,
+		o_out => wJe
+	);
 	----------------------------------------------------------------------------
+	plClk <= sysclk;
+	----------------------------------------------------------------------------
+	wLED(1) <= psBlink;
+	wLED(0) <= plBlink;
+	----------------------------------------------------------------------------
+	led <= wLED;
+	rgb5 <= wRGB5;
+	rgb6 <= wRGB6;
 	jb <= wJb;
 	jc <= wJc;
 	jd <= wJd;
 	je <= wJe;
+	----------------------------------------------------------------------------
+	-- 
+	----------------------------------------------------------------------------
+	process(psClk)
+	begin
+		if rising_edge(psClk) then
+			if psRSTn = '0' then
+				regRGB5 <= (others => '0');
+				regRGB6 <= (others => '0');				
+				regJBCH1 <= (others => '0');
+				regJBCH2 <= (others => '0');
+				regJCCH1 <= (others => '0');
+				regJCCH2 <= (others => '0');				
+				regJDCH1 <= (others => '0');
+				regJDCH2 <= (others => '0');
+				regJECH1 <= (others => '0');
+				regJECH2 <= (others => '0');
+			else
+				regRGB5 <= psRGB5;
+				regRGB6 <= psRGB6;				
+				regJBCH1 <= psJBCH1;
+				regJBCH2 <= psJBCH2;
+				regJCCH1 <= psJCCH1;
+				regJCCH2 <= psJCCH2;				
+				regJDCH1 <= psJDCH1;
+				regJDCH2 <= psJDCH2;
+				regJECH1 <= psJECH1;
+				regJECH2 <= psJECH2;
+			end if;
+		end if;
+	end process;
 	----------------------------------------------------------------------------
 
 end Behavioral;
