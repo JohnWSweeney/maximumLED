@@ -79,15 +79,15 @@ architecture Behavioral of main is
 	component dbgBlink is
 	port (
 		i_clk : in std_logic;
-		o_blink : out std_logic
+		o_led : out std_logic
 	);
 	end component dbgBlink;
 	----------------------------------------------------------------------------
 	component rgbDriver is
 	port (
 		i_clk : in std_logic;
-		i_data : in std_logic_vector(23 downto 0);
-		o_out : out std_logic_vector(2 downto 0)
+		i_rgbDutyCycle : in std_logic_vector(23 downto 0);
+		o_rgb : out std_logic_vector(2 downto 0)
 	);
 	end component rgbDriver;
 	----------------------------------------------------------------------------
@@ -119,7 +119,7 @@ architecture Behavioral of main is
 	signal  psJECH1			: std_logic_vector(31 downto 0);
     signal  psJECH2			: std_logic_vector(31 downto 0);
 	----------------------------------------------------------------------------
-	-- PS registers
+	-- PS signal registers
 	----------------------------------------------------------------------------
     signal  regRGB5			: std_logic_vector(31 downto 0);
     signal  regRGB6			: std_logic_vector(31 downto 0);
@@ -184,27 +184,27 @@ begin
 	plCheck: component dbgBlink
 	port map (
 		i_clk => plClk,
-		o_blink => plBlink
+		o_led => plBlink
 	);
 		
 	psCheck: component dbgBlink
 	port map (
 		i_clk => psClk,
-		o_blink => psBlink
+		o_led => psBlink
 	);
 	----------------------------------------------------------------------------
 	plRGB5: component rgbDriver
 	port map (
 		i_clk => psClk,
-		i_data => regRGB5(23 downto 0),
-		o_out => wRGB5
+		i_rgbDutyCycle => regRGB5(23 downto 0),
+		o_rgb => wRGB5
 	);
 	
 	plRGB6: component rgbDriver
 	port map (
 		i_clk => psClk,
-		i_data => regRGB6(23 downto 0),
-		o_out => wRGB6
+		i_rgbDutyCycle => regRGB6(23 downto 0),
+		o_rgb => wRGB6
 	);
 	----------------------------------------------------------------------------
 	jb8LD: component pmod8LD
@@ -252,7 +252,7 @@ begin
 	jd <= wJd;
 	je <= wJe;
 	----------------------------------------------------------------------------
-	-- 
+	-- register/reset AXI GPIO data.
 	----------------------------------------------------------------------------
 	process(psClk)
 	begin

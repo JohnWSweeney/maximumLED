@@ -12,14 +12,14 @@ end pwm;
 
 architecture Behavioral of pwm is
 	signal  clk         : std_logic;
-	signal	state		: integer range 0 to 1:= 0;
-	signal	en			: std_logic;
-	signal	period		: integer range 0 to 125000:= 0;
-	signal	periodMAX	: integer:= 125000;
-	signal	pulseWidth	: integer range 0 to 125000:= 0;
 	signal	dutyCycle	: integer range 0 to 100:= 0;
 	signal	prevDuty	: integer range 0 to 100:= 0;
-	signal	pwm			: std_logic;
+	signal	state		: integer range 0 to 1:= 0;	
+	constant periodMAX	: integer:= 125000;
+	signal	period		: integer range 0 to 125000:= 0;
+	signal	pulseWidth	: integer range 0 to 125000:= 0;
+	signal	pwm			: std_logic:= '0';
+	signal	en			: std_logic;
 
 begin
 	----------------------------------------------------------------------------
@@ -59,8 +59,6 @@ begin
 					if en = '1' then
 						state <= 1;
 					end if;
-					period <= 0;
-					pwm <= '0';
 				----------------------------------------------------------------
 				when 1 =>
 					------------------------------------------------------------
@@ -83,7 +81,9 @@ begin
 					------------------------------------------------------------
 					-- reset state machine when PWM disabled.
 					------------------------------------------------------------
-					if en = '0' then						
+					if en = '0' then	
+						period <= 0;
+						pwm <= '0';
 						state <= 0;
 					end if;
 				----------------------------------------------------------------	
