@@ -8,6 +8,7 @@ entity main is
 		rgb5	: out std_logic_vector(2 downto 0);
 		rgb6	: out std_logic_vector(2 downto 0);
 		led		: out std_logic_vector(3 downto 0);
+		ja		: out std_logic_vector(7 downto 0);
 		jb		: out std_logic_vector(7 downto 0);
 		jc		: out std_logic_vector(7 downto 0);
 		jd		: out std_logic_vector(7 downto 0);
@@ -63,6 +64,8 @@ architecture Behavioral of main is
 		FIXED_IO_ps_porb : inout STD_LOGIC;
 		RGB5_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
 		RGB6_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
+		jaCH1_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
+		jaCH2_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
 		jbCH1_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
 		jbCH2_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
 		jcCH1_tri_o : out STD_LOGIC_VECTOR ( 31 downto 0 );
@@ -110,6 +113,8 @@ architecture Behavioral of main is
 	----------------------------------------------------------------------------
     signal  psRGB5          : std_logic_vector(31 downto 0);
     signal  psRGB6          : std_logic_vector(31 downto 0);
+	signal  psJACH1			: std_logic_vector(31 downto 0);
+    signal  psJACH2			: std_logic_vector(31 downto 0);
     signal  psJBCH1			: std_logic_vector(31 downto 0);
     signal  psJBCH2			: std_logic_vector(31 downto 0);
 	signal  psJCCH1			: std_logic_vector(31 downto 0);
@@ -123,6 +128,8 @@ architecture Behavioral of main is
 	----------------------------------------------------------------------------
     signal  regRGB5			: std_logic_vector(31 downto 0);
     signal  regRGB6			: std_logic_vector(31 downto 0);
+	signal  regJACH1		: std_logic_vector(31 downto 0);
+    signal  regJACH2		: std_logic_vector(31 downto 0);	
     signal  regJBCH1		: std_logic_vector(31 downto 0);
     signal  regJBCH2		: std_logic_vector(31 downto 0);
 	signal  regJCCH1		: std_logic_vector(31 downto 0);
@@ -137,6 +144,7 @@ architecture Behavioral of main is
 	signal  wLED	   		: std_logic_vector(3 downto 0);
 	signal	wRGB5			: std_logic_vector(2 downto 0);
 	signal	wRGB6			: std_logic_vector(2 downto 0);
+	signal  wJa				: std_logic_vector(7 downto 0);
 	signal  wJb				: std_logic_vector(7 downto 0);
 	signal  wJc				: std_logic_vector(7 downto 0);
 	signal  wJd				: std_logic_vector(7 downto 0);
@@ -169,6 +177,8 @@ begin
 		FIXED_IO_ps_srstb => FIXED_IO_ps_srstb,
 		RGB5_tri_o(31 downto 0) => psRGB5,
 		RGB6_tri_o(31 downto 0) => psRGB6,
+		jaCH1_tri_o(31 downto 0) => psJACH1,
+		jaCH2_tri_o(31 downto 0) => psJACH2,	
 		jbCH1_tri_o(31 downto 0) => psJBCH1,
 		jbCH2_tri_o(31 downto 0) => psJBCH2,
 		jcCH1_tri_o(31 downto 0) => psJCCH1,
@@ -207,6 +217,14 @@ begin
 		o_rgb => wRGB6
 	);
 	----------------------------------------------------------------------------
+	ja8LD: component pmod8LD
+	port map (
+		i_clk => psClk,
+		i_ch1 => regJACH1,
+		i_ch2 => regJACH2,
+		o_out => wJa
+	);
+	
 	jb8LD: component pmod8LD
 	port map (
 		i_clk => psClk,
@@ -247,6 +265,7 @@ begin
 	led <= wLED;
 	rgb5 <= wRGB5;
 	rgb6 <= wRGB6;
+	ja <= wJa;
 	jb <= wJb;
 	jc <= wJc;
 	jd <= wJd;
@@ -259,7 +278,9 @@ begin
 		if rising_edge(psClk) then
 			if psRSTn = '0' then
 				regRGB5 <= (others => '0');
-				regRGB6 <= (others => '0');				
+				regRGB6 <= (others => '0');		
+				regJACH1 <= (others => '0');
+				regJACH2 <= (others => '0');				
 				regJBCH1 <= (others => '0');
 				regJBCH2 <= (others => '0');
 				regJCCH1 <= (others => '0');
@@ -270,7 +291,9 @@ begin
 				regJECH2 <= (others => '0');
 			else
 				regRGB5 <= psRGB5;
-				regRGB6 <= psRGB6;				
+				regRGB6 <= psRGB6;
+				regJACH1 <= psJACH1;
+				regJACH2 <= psJACH2;			
 				regJBCH1 <= psJBCH1;
 				regJBCH2 <= psJBCH2;
 				regJCCH1 <= psJCCH1;

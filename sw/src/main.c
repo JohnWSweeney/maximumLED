@@ -26,7 +26,7 @@ typedef union {
 	};
 } plRGB;
 
-inline u8 getRandNum(u8 MIN, u8 MAX){
+static inline u8 getRandNum(u8 MIN, u8 MAX){
 	return (rand() % (MAX - MIN + 1)) + MIN;
 }
 
@@ -47,6 +47,13 @@ int main(void){
 		XGpioPs_SetOutputEnablePin(&gpioPS, mioPmod[i], 1);
 		XGpioPs_WritePin(&gpioPS, mioPmod[i], 0);
 	}
+	// initialize gpioJA channels 1 & 2.
+	XGpio gpioJA;
+	XGpio_Initialize(&gpioJA, XPAR_GPIOJA_DEVICE_ID);
+	XGpio_SetDataDirection(&gpioJA, 1, 0);
+	XGpio_DiscreteWrite(&gpioJA, 1, 0);
+	XGpio_SetDataDirection(&gpioJA, 2, 0);
+	XGpio_DiscreteWrite(&gpioJA, 2, 0);
 	// initialize gpioJB channels 1 & 2.
 	XGpio gpioJB;
 	XGpio_Initialize(&gpioJB, XPAR_GPIOJB_DEVICE_ID);
@@ -86,6 +93,8 @@ int main(void){
 	static u32 psIncr = 0;
 	static u32 plIncr = 0;
 	static u32 mioLEDstatus = 0;
+	pmod8LDCH jaCH1 = {0};
+	pmod8LDCH jaCH2 = {0};
 	pmod8LDCH jbCH1 = {0};
 	pmod8LDCH jbCH2 = {0};
 	pmod8LDCH jcCH1 = {0};
@@ -123,6 +132,17 @@ int main(void){
 		}
 		//
 		if(plIncr==plIncrTrig){
+			jaCH1.led1 = getRandNum(randMIN, randMAX);
+			jaCH1.led2 = getRandNum(randMIN, randMAX);
+			jaCH1.led3 = getRandNum(randMIN, randMAX);
+			jaCH1.led4 = getRandNum(randMIN, randMAX);
+			jaCH2.led1 = getRandNum(randMIN, randMAX);
+			jaCH2.led2 = getRandNum(randMIN, randMAX);
+			jaCH2.led3 = getRandNum(randMIN, randMAX);
+			jaCH2.led4 = getRandNum(randMIN, randMAX);
+			XGpio_DiscreteWrite(&gpioJA, 1, jaCH1.gpio);
+			XGpio_DiscreteWrite(&gpioJA, 2, jaCH2.gpio);
+			//
 			jbCH1.led1 = getRandNum(randMIN, randMAX);
 			jbCH1.led2 = getRandNum(randMIN, randMAX);
 			jbCH1.led3 = getRandNum(randMIN, randMAX);
