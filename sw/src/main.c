@@ -6,15 +6,31 @@
 #include <stdlib.h>
 #include <time.h>
 
-typedef union {
-	u32 gpio;
-	struct {
-		u8 led1;
-		u8 led2;
-		u8 led3;
-		u8 led4;
-	};
-} pmod8LDCH;
+typedef struct{
+	XGpio gpioID;
+	u16 deviceID;
+} gpioDevice;
+
+typedef struct{
+	union{
+		struct{
+			u8 led1;
+			u8 led2;
+			u8 led3;
+			u8 led4;
+		} leds;
+		u32 led1234;
+	} ch1;
+	union{
+		struct{
+			u8 led5;
+			u8 led6;
+			u8 led7;
+			u8 led8;
+		} leds;
+		u32 led5678;
+	} ch2;
+} psGPIO;
 
 typedef union {
 	u32 gpio;
@@ -47,41 +63,21 @@ int main(void){
 		XGpioPs_SetOutputEnablePin(&gpioPS, mioPmod[i], 1);
 		XGpioPs_WritePin(&gpioPS, mioPmod[i], 0);
 	}
-	// initialize gpioJA channels 1 & 2.
-	XGpio gpioJA;
-	XGpio_Initialize(&gpioJA, XPAR_GPIOJA_DEVICE_ID);
-	XGpio_SetDataDirection(&gpioJA, 1, 0);
-	XGpio_DiscreteWrite(&gpioJA, 1, 0);
-	XGpio_SetDataDirection(&gpioJA, 2, 0);
-	XGpio_DiscreteWrite(&gpioJA, 2, 0);
-	// initialize gpioJB channels 1 & 2.
-	XGpio gpioJB;
-	XGpio_Initialize(&gpioJB, XPAR_GPIOJB_DEVICE_ID);
-	XGpio_SetDataDirection(&gpioJB, 1, 0);
-	XGpio_DiscreteWrite(&gpioJB, 1, 0);
-	XGpio_SetDataDirection(&gpioJB, 2, 0);
-	XGpio_DiscreteWrite(&gpioJB, 2, 0);
-	// initialize gpioJC channels 1 & 2.
-	XGpio gpioJC;
-	XGpio_Initialize(&gpioJC, XPAR_GPIOJC_DEVICE_ID);
-	XGpio_SetDataDirection(&gpioJC, 1, 0);
-	XGpio_DiscreteWrite(&gpioJC, 1, 0);
-	XGpio_SetDataDirection(&gpioJC, 2, 0);
-	XGpio_DiscreteWrite(&gpioJC, 2, 0);
-	// initialize gpioJD channels 1 & 2.
-	XGpio gpioJD;
-	XGpio_Initialize(&gpioJD, XPAR_GPIOJD_DEVICE_ID);
-	XGpio_SetDataDirection(&gpioJD, 1, 0);
-	XGpio_DiscreteWrite(&gpioJD, 1, 0);
-	XGpio_SetDataDirection(&gpioJD, 2, 0);
-	XGpio_DiscreteWrite(&gpioJD, 2, 0);
-	// initialize gpioJD channels 1 & 2.
-	XGpio gpioJE;
-	XGpio_Initialize(&gpioJE, XPAR_GPIOJE_DEVICE_ID);
-	XGpio_SetDataDirection(&gpioJE, 1, 0);
-	XGpio_DiscreteWrite(&gpioJE, 1, 0);
-	XGpio_SetDataDirection(&gpioJE, 2, 0);
-	XGpio_DiscreteWrite(&gpioJE, 2, 0);
+	// initialize gpios for pmod connectors JA-JE.
+	gpioDevice gpio[5] = {0};
+	gpio[0].deviceID = XPAR_GPIOJA_DEVICE_ID;
+	gpio[1].deviceID = XPAR_GPIOJB_DEVICE_ID;
+	gpio[2].deviceID = XPAR_GPIOJC_DEVICE_ID;
+	gpio[3].deviceID = XPAR_GPIOJD_DEVICE_ID;
+	gpio[4].deviceID = XPAR_GPIOJE_DEVICE_ID;
+	
+	for(int i=0;i<5;i++){
+		XGpio_Initialize(&gpio[i].gpioID, gpio[i].deviceID);
+		XGpio_SetDataDirection(&gpio[i].gpioID, 1, 0);
+		XGpio_DiscreteWrite(&gpio[i].gpioID, 1, 0);
+		XGpio_SetDataDirection(&gpio[i].gpioID, 2, 0);
+		XGpio_DiscreteWrite(&gpio[i].gpioID, 2, 0);
+	}
 	// initialize PL RGB channels 1 & 2.
 	XGpio gpioRGB;
 	XGpio_Initialize(&gpioRGB, XPAR_RGB_DEVICE_ID);
@@ -93,16 +89,7 @@ int main(void){
 	static u32 psIncr = 0;
 	static u32 plIncr = 0;
 	static u32 mioLEDstatus = 0;
-	pmod8LDCH jaCH1 = {0};
-	pmod8LDCH jaCH2 = {0};
-	pmod8LDCH jbCH1 = {0};
-	pmod8LDCH jbCH2 = {0};
-	pmod8LDCH jcCH1 = {0};
-	pmod8LDCH jcCH2 = {0};
-	pmod8LDCH jdCH1 = {0};
-	pmod8LDCH jdCH2 = {0};
-	pmod8LDCH jeCH1 = {0};
-	pmod8LDCH jeCH2 = {0};
+	psGPIO pmod8LD[5] = {0};
 	plRGB rgb5 = {0};
 	plRGB rgb6 = {0};
 	
@@ -132,61 +119,18 @@ int main(void){
 		}
 		//
 		if(plIncr==plIncrTrig){
-			jaCH1.led1 = getRandNum(randMIN, randMAX);
-			jaCH1.led2 = getRandNum(randMIN, randMAX);
-			jaCH1.led3 = getRandNum(randMIN, randMAX);
-			jaCH1.led4 = getRandNum(randMIN, randMAX);
-			jaCH2.led1 = getRandNum(randMIN, randMAX);
-			jaCH2.led2 = getRandNum(randMIN, randMAX);
-			jaCH2.led3 = getRandNum(randMIN, randMAX);
-			jaCH2.led4 = getRandNum(randMIN, randMAX);
-			XGpio_DiscreteWrite(&gpioJA, 1, jaCH1.gpio);
-			XGpio_DiscreteWrite(&gpioJA, 2, jaCH2.gpio);
-			//
-			jbCH1.led1 = getRandNum(randMIN, randMAX);
-			jbCH1.led2 = getRandNum(randMIN, randMAX);
-			jbCH1.led3 = getRandNum(randMIN, randMAX);
-			jbCH1.led4 = getRandNum(randMIN, randMAX);
-			jbCH2.led1 = getRandNum(randMIN, randMAX);
-			jbCH2.led2 = getRandNum(randMIN, randMAX);
-			jbCH2.led3 = getRandNum(randMIN, randMAX);
-			jbCH2.led4 = getRandNum(randMIN, randMAX);
-			XGpio_DiscreteWrite(&gpioJB, 1, jbCH1.gpio);
-			XGpio_DiscreteWrite(&gpioJB, 2, jbCH2.gpio);
-			//
-			jcCH1.led1 = getRandNum(randMIN, randMAX);
-			jcCH1.led2 = getRandNum(randMIN, randMAX);
-			jcCH1.led3 = getRandNum(randMIN, randMAX);
-			jcCH1.led4 = getRandNum(randMIN, randMAX);
-			jcCH2.led1 = getRandNum(randMIN, randMAX);
-			jcCH2.led2 = getRandNum(randMIN, randMAX);
-			jcCH2.led3 = getRandNum(randMIN, randMAX);
-			jcCH2.led4 = getRandNum(randMIN, randMAX);
-			XGpio_DiscreteWrite(&gpioJC, 1, jcCH1.gpio);
-			XGpio_DiscreteWrite(&gpioJC, 2, jcCH2.gpio);
-			//
-			jdCH1.led1 = getRandNum(randMIN, randMAX);
-			jdCH1.led2 = getRandNum(randMIN, randMAX);
-			jdCH1.led3 = getRandNum(randMIN, randMAX);
-			jdCH1.led4 = getRandNum(randMIN, randMAX);
-			jdCH2.led1 = getRandNum(randMIN, randMAX);
-			jdCH2.led2 = getRandNum(randMIN, randMAX);
-			jdCH2.led3 = getRandNum(randMIN, randMAX);
-			jdCH2.led4 = getRandNum(randMIN, randMAX);
-			XGpio_DiscreteWrite(&gpioJD, 1, jdCH1.gpio);
-			XGpio_DiscreteWrite(&gpioJD, 2, jdCH2.gpio);
-			//
-			jeCH1.led1 = getRandNum(randMIN, randMAX);
-			jeCH1.led2 = getRandNum(randMIN, randMAX);
-			jeCH1.led3 = getRandNum(randMIN, randMAX);
-			jeCH1.led4 = getRandNum(randMIN, randMAX);
-			jeCH2.led1 = getRandNum(randMIN, randMAX);
-			jeCH2.led2 = getRandNum(randMIN, randMAX);
-			jeCH2.led3 = getRandNum(randMIN, randMAX);
-			jeCH2.led4 = getRandNum(randMIN, randMAX);
-			XGpio_DiscreteWrite(&gpioJE, 1, jeCH1.gpio);
-			XGpio_DiscreteWrite(&gpioJE, 2, jeCH2.gpio);
-			//
+			for(int i=0;i<5;i++){
+				pmod8LD[i].ch1.leds.led1 = getRandNum(randMIN, randMAX);
+				pmod8LD[i].ch1.leds.led2 = getRandNum(randMIN, randMAX);
+				pmod8LD[i].ch1.leds.led3 = getRandNum(randMIN, randMAX);
+				pmod8LD[i].ch1.leds.led4 = getRandNum(randMIN, randMAX);
+				pmod8LD[i].ch2.leds.led5 = getRandNum(randMIN, randMAX);
+				pmod8LD[i].ch2.leds.led6 = getRandNum(randMIN, randMAX);
+				pmod8LD[i].ch2.leds.led7 = getRandNum(randMIN, randMAX);
+				pmod8LD[i].ch2.leds.led8 = getRandNum(randMIN, randMAX);
+				XGpio_DiscreteWrite(&gpio[i].gpioID, 1, pmod8LD[i].ch1.led1234);
+				XGpio_DiscreteWrite(&gpio[i].gpioID, 2, pmod8LD[i].ch2.led5678);
+			}
 			plIncrTrig = getRandNum(plIncrMIN, plIncrMAX);
 			plIncr = 0;
 		}

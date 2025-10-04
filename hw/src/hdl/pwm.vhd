@@ -14,12 +14,14 @@ architecture Behavioral of pwm is
 	signal  clk         : std_logic;
 	signal	dutyCycle	: integer range 0 to 100:= 0;
 	signal	prevDuty	: integer range 0 to 100:= 0;
-	signal	state		: integer range 0 to 1:= 0;	
+	-- signal	state		: integer range 0 to 1:= 0;	
+	type state_t is (IDLE, ACTIVE);
+	signal state		: state_t:= IDLE;
 	constant periodMAX	: integer:= 125000;
 	signal	period		: integer range 0 to 125000:= 0;
 	signal	pulseWidth	: integer range 0 to 125000:= 0;
 	signal	pwm			: std_logic:= '0';
-	signal	en			: std_logic;
+	signal	en			: std_logic:= '0';
 
 begin
 	----------------------------------------------------------------------------
@@ -33,7 +35,6 @@ begin
 			if dutyCycle /= prevDuty then
 				----------------------------------------------------------------
 				-- enable PWM, calc pulsewidth at turn on. Else, turn off.
-				----------------------------------------------------------------
 				if dutyCycle > 0 then
 					en <= '1';
 					pulseWidth <= periodMAX * dutyCycle / 100;
@@ -44,7 +45,6 @@ begin
 			end if;
 			--------------------------------------------------------------------
 			-- save current dutyCycle for next time.
-			--------------------------------------------------------------------
 			prevDuty <= dutyCycle;
 			--------------------------------------------------------------------
 		end if;
@@ -55,15 +55,14 @@ begin
 		if rising_edge(clk) then
 			case state is
 				----------------------------------------------------------------
-				when 0 =>
+				when IDLE =>
 					if en = '1' then
-						state <= 1;
+						state <= ACTIVE;
 					end if;
 				----------------------------------------------------------------
-				when 1 =>
+				when ACTIVE =>
 					------------------------------------------------------------
 					-- continuously cycle period.
-					------------------------------------------------------------
 					if period < periodMAX - 1 then
 						period <= period + 1;
 					else
@@ -71,20 +70,17 @@ begin
 					end if;
 					------------------------------------------------------------
 					-- pulse high for the pulsewidth duration, low remainder.
-					------------------------------------------------------------
 					if period < pulseWidth - 1 then
 						pwm <= '1';
 					else
 						pwm <= '0';
-					------------------------------------------------------------
 					end if;
 					------------------------------------------------------------
 					-- reset state machine when PWM disabled.
-					------------------------------------------------------------
 					if en = '0' then	
 						period <= 0;
 						pwm <= '0';
-						state <= 0;
+						state <= IDLE;
 					end if;
 				----------------------------------------------------------------	
 			end case;			
